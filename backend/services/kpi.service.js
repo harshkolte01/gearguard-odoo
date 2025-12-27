@@ -8,14 +8,20 @@ const { getUserTeams, getEquipmentFilter } = require('./rbac.service');
 
 /**
  * Calculate critical equipment count
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object (with teamMemberships) or User ID string
  * @returns {Promise<object>} Critical equipment data
  */
-const calculateCriticalEquipment = async (userId) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { teamMemberships: true },
-  });
+const calculateCriticalEquipment = async (userOrUserId) => {
+  // If user object provided (optimized path), use it directly
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      include: { teamMemberships: true },
+    });
+  }
 
   let where = {
     OR: [
@@ -24,8 +30,8 @@ const calculateCriticalEquipment = async (userId) => {
     ],
   };
 
-  // Apply role-based filtering
-  const equipmentFilter = await getEquipmentFilter(userId);
+  // Apply role-based filtering (pass user object to avoid redundant query)
+  const equipmentFilter = await getEquipmentFilter(user);
   where = { ...where, ...equipmentFilter };
 
   const count = await prisma.equipment.count({ where });
@@ -40,14 +46,20 @@ const calculateCriticalEquipment = async (userId) => {
 
 /**
  * Calculate technician workload
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object (with teamMemberships) or User ID string
  * @returns {Promise<object>} Workload data
  */
-const calculateTechnicianLoad = async (userId) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { teamMemberships: true },
-  });
+const calculateTechnicianLoad = async (userOrUserId) => {
+  // If user object provided (optimized path), use it directly
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      include: { teamMemberships: true },
+    });
+  }
 
   const AVAILABLE_HOURS_PER_WEEK = 40;
 
@@ -65,7 +77,7 @@ const calculateTechnicianLoad = async (userId) => {
     technicianIds = allTechs.map((t) => t.id);
   } else if (user.role === 'technician') {
     // Technicians only see their own load
-    technicianIds = [userId];
+    technicianIds = [user.id];
   }
 
   if (technicianIds.length === 0) {
@@ -119,23 +131,29 @@ const calculateTechnicianLoad = async (userId) => {
 
 /**
  * Calculate open and overdue requests
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object (with teamMemberships) or User ID string
  * @returns {Promise<object>} Requests data
  */
-const calculateOpenRequests = async (userId) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { teamMemberships: true },
-  });
+const calculateOpenRequests = async (userOrUserId) => {
+  // If user object provided (optimized path), use it directly
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      include: { teamMemberships: true },
+    });
+  }
 
   let where = {};
 
   // Apply role-based filtering
   if (user.role === 'portal') {
-    where.created_by = userId;
+    where.created_by = user.id;
   } else if (user.role === 'technician') {
     // Technicians only see their assigned requests
-    where.assigned_technician_id = userId;
+    where.assigned_technician_id = user.id;
   }
 
   // Count pending (new + in_progress)
@@ -165,21 +183,27 @@ const calculateOpenRequests = async (userId) => {
 
 /**
  * Get all KPIs for a user
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object or User ID string
  * @returns {Promise<object>} All KPI data
  */
-const getKPIsForUser = async (userId) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  });
+const getKPIsForUser = async (userOrUserId) => {
+  // If user object provided (optimized path), use it directly
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      select: { role: true, id: true, teamMemberships: true },
+    });
+  }
 
   // Portal users get different KPIs
   if (user.role === 'portal') {
     const myRequests = await prisma.maintenanceRequest.groupBy({
       by: ['state'],
       where: {
-        created_by: userId,
+        created_by: user.id,
       },
       _count: true,
     });
@@ -203,11 +227,11 @@ const getKPIsForUser = async (userId) => {
     };
   }
 
-  // Admin, manager, technician get full dashboard
+  // Admin, manager, technician get full dashboard (pass user object to avoid 3 redundant queries)
   const [criticalEquipment, technicianLoad, openRequests] = await Promise.all([
-    calculateCriticalEquipment(userId),
-    calculateTechnicianLoad(userId),
-    calculateOpenRequests(userId),
+    calculateCriticalEquipment(user),
+    calculateTechnicianLoad(user),
+    calculateOpenRequests(user),
   ]);
 
   return {
@@ -219,12 +243,14 @@ const getKPIsForUser = async (userId) => {
 
 /**
  * Get critical equipment details
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object (with teamMemberships) or User ID string
  * @returns {Promise<array>} Critical equipment list
  */
-const getCriticalEquipmentDetails = async (userId) => {
-  const equipmentFilter = await getEquipmentFilter(userId);
+const getCriticalEquipmentDetails = async (userOrUserId) => {
+  const equipmentFilter = await getEquipmentFilter(userOrUserId);
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
+  // Single query with all maintenance requests needed for counting and latest date
   const criticalEquipment = await prisma.equipment.findMany({
     where: {
       ...equipmentFilter,
@@ -243,13 +269,12 @@ const getCriticalEquipmentDetails = async (userId) => {
         where: {
           type: 'corrective',
           created_at: {
-            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
+            gte: thirtyDaysAgo,
           },
         },
         orderBy: {
           created_at: 'desc',
         },
-        take: 1,
         select: {
           created_at: true,
         },
@@ -260,47 +285,37 @@ const getCriticalEquipmentDetails = async (userId) => {
     },
   });
 
-  // Add recent issues count
-  const equipmentWithIssues = await Promise.all(
-    criticalEquipment.map(async (equip) => {
-      const issueCount = await prisma.maintenanceRequest.count({
-        where: {
-          equipment_id: equip.id,
-          type: 'corrective',
-          created_at: {
-            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-          },
-        },
-      });
-
-      return {
-        id: equip.id,
-        name: equip.name,
-        serial_number: equip.serial_number,
-        department: equip.department,
-        health_score: equip.health_score,
-        status: equip.status,
-        location: equip.location,
-        maintenanceTeam: equip.maintenanceTeam,
-        recentIssues: issueCount,
-        lastMaintenance: equip.maintenanceRequests[0]?.created_at || null,
-      };
-    })
-  );
-
-  return equipmentWithIssues;
+  // Transform in memory (single pass, no additional queries)
+  return criticalEquipment.map((equip) => ({
+    id: equip.id,
+    name: equip.name,
+    serial_number: equip.serial_number,
+    department: equip.department,
+    health_score: equip.health_score,
+    status: equip.status,
+    location: equip.location,
+    maintenanceTeam: equip.maintenanceTeam,
+    recentIssues: equip.maintenanceRequests.length,
+    lastMaintenance: equip.maintenanceRequests[0]?.created_at || null,
+  }));
 };
 
 /**
  * Get technician workload breakdown
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object (with teamMemberships) or User ID string
  * @returns {Promise<object>} Detailed workload data
  */
-const getTechnicianLoadDetails = async (userId) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { teamMemberships: true },
-  });
+const getTechnicianLoadDetails = async (userOrUserId) => {
+  // If user object provided (optimized path), use it directly
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      include: { teamMemberships: true },
+    });
+  }
 
   const AVAILABLE_HOURS_PER_WEEK = 40;
 
@@ -348,41 +363,54 @@ const getTechnicianLoadDetails = async (userId) => {
     }));
   }
 
+  // Batch fetch ALL requests for all technicians in ONE query (eliminates N+1)
+  const technicianIds = technicians.map((tech) => tech.id);
+  
+  const allRequests = await prisma.maintenanceRequest.findMany({
+    where: {
+      assigned_technician_id: { in: technicianIds },
+      state: { in: ['new', 'in_progress'] },
+    },
+    select: {
+      assigned_technician_id: true,
+      duration_hours: true,
+    },
+  });
+
+  // Group requests by technician in memory (fast)
+  const requestsByTech = {};
+  allRequests.forEach((req) => {
+    if (!requestsByTech[req.assigned_technician_id]) {
+      requestsByTech[req.assigned_technician_id] = [];
+    }
+    requestsByTech[req.assigned_technician_id].push(req);
+  });
+
   // Calculate load for each technician
-  const byTechnician = await Promise.all(
-    technicians.map(async (tech) => {
-      const requests = await prisma.maintenanceRequest.findMany({
-        where: {
-          assigned_technician_id: tech.id,
-          state: { in: ['new', 'in_progress'] },
-        },
-        select: {
-          duration_hours: true,
-        },
-      });
+  const byTechnician = technicians.map((tech) => {
+    const requests = requestsByTech[tech.id] || [];
+    
+    const assignedHours = requests.reduce(
+      (sum, req) => sum + (req.duration_hours || 0),
+      0
+    );
 
-      const assignedHours = requests.reduce(
-        (sum, req) => sum + (req.duration_hours || 0),
-        0
-      );
+    const loadPercentage = Math.round(
+      (assignedHours / AVAILABLE_HOURS_PER_WEEK) * 100
+    );
 
-      const loadPercentage = Math.round(
-        (assignedHours / AVAILABLE_HOURS_PER_WEEK) * 100
-      );
+    const activeRequests = requests.length;
 
-      const activeRequests = requests.length;
-
-      return {
-        id: tech.id,
-        name: tech.name,
-        team: tech.teamMemberships[0]?.team?.name || 'No Team',
-        assignedHours,
-        availableHours: AVAILABLE_HOURS_PER_WEEK,
-        loadPercentage,
-        activeRequests,
-      };
-    })
-  );
+    return {
+      id: tech.id,
+      name: tech.name,
+      team: tech.teamMemberships[0]?.team?.name || 'No Team',
+      assignedHours,
+      availableHours: AVAILABLE_HOURS_PER_WEEK,
+      loadPercentage,
+      activeRequests,
+    };
+  });
 
   // Calculate by team
   const teamMap = new Map();

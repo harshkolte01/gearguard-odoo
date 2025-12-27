@@ -13,7 +13,8 @@ const calendarService = require('../services/calendar.service');
 const getScheduledRequests = async (req, res) => {
   try {
     const { month, year, technician_id } = req.query;
-    const userId = req.user.id;
+    // Use cached user object if available, otherwise fallback to user ID
+    const userOrId = req.userWithTeams || req.user.id;
 
     // Validate month and year
     const monthNum = parseInt(month);
@@ -53,7 +54,7 @@ const getScheduledRequests = async (req, res) => {
     }
 
     const result = await calendarService.getScheduledRequests(
-      userId,
+      userOrId,
       monthNum,
       yearNum,
       technician_id || null
@@ -82,9 +83,10 @@ const getScheduledRequests = async (req, res) => {
  */
 const getTechnicians = async (req, res) => {
   try {
-    const userId = req.user.id;
+    // Use cached user object if available, otherwise fallback to user ID
+    const userOrId = req.userWithTeams || req.user.id;
 
-    const technicians = await calendarService.getTechniciansForFilter(userId);
+    const technicians = await calendarService.getTechniciansForFilter(userOrId);
 
     res.json({
       success: true,

@@ -8,18 +8,23 @@ const { filterByUserRole } = require('./rbac.service');
 
 /**
  * Get scheduled maintenance requests for a specific month
- * @param {string} userId - User ID making the request
+ * @param {string|object} userOrUserId - User object or User ID string
  * @param {number} month - Month (1-12)
  * @param {number} year - Year (e.g., 2025)
  * @param {string} technicianId - Optional technician filter (for managers/admins)
  * @returns {Promise<object>} Scheduled requests grouped by date
  */
-const getScheduledRequests = async (userId, month, year, technicianId = null) => {
-  // Get user to check role
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  });
+const getScheduledRequests = async (userOrUserId, month, year, technicianId = null) => {
+  // Get user to check role (use cached if provided)
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      select: { role: true, id: true },
+    });
+  }
 
   if (!user) {
     throw new Error('User not found');
@@ -41,8 +46,8 @@ const getScheduledRequests = async (userId, month, year, technicianId = null) =>
     },
   };
 
-  // Apply role-based filtering
-  where = await filterByUserRole(userId, where);
+  // Apply role-based filtering (accepts user object or ID)
+  where = await filterByUserRole(user, where);
 
   // If a technician filter is provided AND user is manager/admin, apply it
   if (technicianId && (user.role === 'admin' || user.role === 'manager')) {
@@ -119,15 +124,20 @@ const getScheduledRequests = async (userId, month, year, technicianId = null) =>
 
 /**
  * Get list of technicians for filter dropdown (managers/admins only)
- * @param {string} userId - User ID making the request
+ * @param {string|object} userOrUserId - User object or User ID string
  * @returns {Promise<Array>} List of technicians
  */
-const getTechniciansForFilter = async (userId) => {
-  // Get user to check role
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  });
+const getTechniciansForFilter = async (userOrUserId) => {
+  // Get user to check role (use cached if provided)
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      select: { role: true },
+    });
+  }
 
   if (!user) {
     throw new Error('User not found');

@@ -141,20 +141,20 @@ const createRequest = async (data, creatorId) => {
 
 /**
  * Get maintenance requests for dashboard with filters
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object (with teamMemberships) or User ID string
  * @param {object} filters - Filter options
  * @param {object} pagination - Pagination options
  * @returns {Promise<object>} Requests with pagination
  */
-const getRequestsForDashboard = async (userId, filters = {}, pagination = {}) => {
+const getRequestsForDashboard = async (userOrUserId, filters = {}, pagination = {}) => {
   const { search, state, type, category, team_id, equipment_id, sort_by = 'created_at', sort_order = 'desc' } = filters;
   const { page = 1, limit = 10 } = pagination;
 
   // Build where clause
   let where = {};
 
-  // Apply role-based filtering
-  where = await filterByUserRole(userId, where);
+  // Apply role-based filtering (accepts user object or ID)
+  where = await filterByUserRole(userOrUserId, where);
 
   // Apply search
   if (search) {

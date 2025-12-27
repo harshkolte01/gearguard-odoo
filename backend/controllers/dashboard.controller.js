@@ -12,7 +12,9 @@ const maintenanceRequestService = require('../services/maintenance-request.servi
  */
 const getKPIs = async (req, res) => {
   try {
-    const kpis = await kpiService.getKPIsForUser(req.user.id);
+    // Use cached user object if available, otherwise fallback to user ID
+    const userOrId = req.userWithTeams || req.user.id;
+    const kpis = await kpiService.getKPIsForUser(userOrId);
 
     res.json({
       success: true,
@@ -36,7 +38,9 @@ const getKPIs = async (req, res) => {
  */
 const getCriticalEquipment = async (req, res) => {
   try {
-    const equipment = await kpiService.getCriticalEquipmentDetails(req.user.id);
+    // Use cached user object if available, otherwise fallback to user ID
+    const userOrId = req.userWithTeams || req.user.id;
+    const equipment = await kpiService.getCriticalEquipmentDetails(userOrId);
 
     res.json({
       success: true,
@@ -60,7 +64,9 @@ const getCriticalEquipment = async (req, res) => {
  */
 const getTechnicianLoad = async (req, res) => {
   try {
-    const workload = await kpiService.getTechnicianLoadDetails(req.user.id);
+    // Use cached user object if available, otherwise fallback to user ID
+    const userOrId = req.userWithTeams || req.user.id;
+    const workload = await kpiService.getTechnicianLoadDetails(userOrId);
 
     res.json({
       success: true,
@@ -100,8 +106,10 @@ const getRequests = async (req, res) => {
       limit: parseInt(limit) || 10,
     };
 
+    // Use cached user object if available, otherwise fallback to user ID
+    const userOrId = req.userWithTeams || req.user.id;
     const result = await maintenanceRequestService.getRequestsForDashboard(
-      req.user.id,
+      userOrId,
       filters,
       pagination
     );
@@ -237,8 +245,9 @@ const getEquipmentById = async (req, res) => {
     const { getEquipmentFilter } = require('../services/rbac.service');
     const { id } = req.params;
 
-    // Get user-specific equipment filter
-    const userFilter = await getEquipmentFilter(req.user.id);
+    // Get user-specific equipment filter (use cached user if available)
+    const userOrId = req.userWithTeams || req.user.id;
+    const userFilter = await getEquipmentFilter(userOrId);
 
     // Fetch equipment with full details
     const equipment = await prisma.equipment.findFirst({

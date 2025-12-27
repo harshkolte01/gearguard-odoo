@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const reportsController = require('../controllers/reports.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const { cacheUserData } = require('../middleware/user-cache.middleware');
 const { requireTechnician } = require('../middleware/rbac.middleware');
 
 /**
@@ -20,6 +21,7 @@ const { requireTechnician } = require('../middleware/rbac.middleware');
 router.get(
   '/requests-by-team',
   authMiddleware,
+  cacheUserData,
   requireTechnician,
   reportsController.getRequestsByTeam
 );
@@ -35,6 +37,7 @@ router.get(
 router.get(
   '/requests-by-category',
   authMiddleware,
+  cacheUserData,
   requireTechnician,
   reportsController.getRequestsByEquipmentCategory
 );
