@@ -237,28 +237,36 @@ export default function Home() {
         {/* Requests Section - All users can see their relevant requests */}
         <>
           {/* View Toggle */}
-          <div className="view-toggle">
-            <button
-              className={`view-toggle-btn ${view === 'table' ? 'active' : ''}`}
-              onClick={() => setView('table')}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
-              </svg>
-              Table
-            </button>
-            <button
-              className={`view-toggle-btn ${view === 'kanban' ? 'active' : ''}`}
-              onClick={() => setView('kanban')}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="9" />
-                <rect x="14" y="3" width="7" height="5" />
-                <rect x="14" y="12" width="7" height="9" />
-                <rect x="3" y="16" width="7" height="5" />
-              </svg>
-              Kanban
-            </button>
+          <div className="view-toggle-container">
+            <div className="view-toggle">
+              <div 
+                className="view-toggle-indicator"
+                style={{
+                  transform: `translateX(${view === 'table' ? '0' : '100%'})`,
+                }}
+              />
+              <button
+                className={`view-toggle-btn ${view === 'table' ? 'active' : ''}`}
+                onClick={() => setView('table')}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
+                </svg>
+                Table
+              </button>
+              <button
+                className={`view-toggle-btn ${view === 'kanban' ? 'active' : ''}`}
+                onClick={() => setView('kanban')}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <rect x="3" y="3" width="7" height="9" />
+                  <rect x="14" y="3" width="7" height="5" />
+                  <rect x="14" y="12" width="7" height="9" />
+                  <rect x="3" y="16" width="7" height="5" />
+                </svg>
+                Kanban
+              </button>
+            </div>
           </div>
 
           <FilterBar
