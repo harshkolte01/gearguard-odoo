@@ -66,7 +66,7 @@ export default function RequestsByTeamChart({ data, loading }: RequestsByTeamCha
             }}
             labelStyle={{ color: '#fff', fontWeight: 600, marginBottom: '4px' }}
             itemStyle={{ color: '#a0aec0' }}
-            formatter={(value: number) => [`${value} requests`, '']}
+            formatter={(value: number | undefined) => [`${value ?? 0} requests`, '']}
           />
           <Bar dataKey="value" radius={[0, 8, 8, 0]}>
             {chartData.map((entry, index) => (
