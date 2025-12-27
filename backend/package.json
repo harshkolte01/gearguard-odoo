@@ -5,10 +5,15 @@
   "main": "server.js",
   "scripts": {
     "dev": "node server.js",
+    "seed": "node prisma/seed.js",
+    "check-db": "node check-db.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:push": "prisma db push"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "keywords": [],
   "author": "",

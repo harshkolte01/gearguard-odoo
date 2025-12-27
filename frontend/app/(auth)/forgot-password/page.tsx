@@ -86,16 +86,14 @@ export default function ForgotPasswordPage() {
       <div className="auth-form-section">
         <div className="auth-form-container">
           <div className="auth-logo">
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.05em' }}>
-              GEARGUARD
-            </h2>
+            <h2>GEARGUARD</h2>
           </div>
 
           {!isSubmitted ? (
             <>
               <h1 className="auth-title">Reset Password</h1>
               <p className="auth-subtitle">
-                Enter your email address and we'll send you instructions to reset your password
+                We'll send recovery instructions to your email
               </p>
 
               {generalError && (
@@ -128,9 +126,9 @@ export default function ForgotPasswordPage() {
             </>
           ) : (
             <>
-              <h1 className="auth-title">Check Your Email</h1>
+              <h1 className="auth-title">Check Email</h1>
               <p className="auth-subtitle">
-                We've sent password reset instructions to your email address
+                Password reset instructions have been sent
               </p>
 
               <div className="alert alert-success">

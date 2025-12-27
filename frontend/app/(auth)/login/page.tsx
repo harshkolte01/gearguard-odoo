@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { authApi, tokenStorage, ApiError } from '@/lib/api';
 import { userStorage } from '@/lib/auth';
+import AuthVisual from '@/components/auth/AuthVisual';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -81,25 +82,21 @@ export default function LoginPage() {
 
   return (
     <div className="auth-container">
-      <div className="auth-visual">
-        <div className="geometric-pattern">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} className="geometric-block" />
-          ))}
-        </div>
-      </div>
+      <AuthVisual />
 
       <div className="auth-form-section">
         <div className="auth-form-container">
           <div className="auth-logo">
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.05em' }}>
-              GEARGUARD
-            </h2>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 4L4 10V22L16 28L28 22V10L16 4Z" stroke="var(--accent-rust)" strokeWidth="2.5" strokeLinejoin="round"/>
+              <circle cx="16" cy="16" r="4" fill="var(--accent-rust)"/>
+            </svg>
+            <h2>GEARGUARD</h2>
           </div>
 
           <h1 className="auth-title">Welcome Back</h1>
           <p className="auth-subtitle">
-            Sign in to access your equipment management dashboard
+            Access your equipment command center
           </p>
 
           {generalError && (
@@ -139,22 +136,26 @@ export default function LoginPage() {
                 <label htmlFor="rememberMe">Remember me</label>
               </div>
 
-              <Link href="/forgot-password" className="auth-link">
+              <Link href="/forgot-password" style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-rust)', textDecoration: 'none' }}>
                 Forgot password?
               </Link>
             </div>
 
-            <Button type="submit" fullWidth isLoading={isLoading}>
-              Sign In
+            <Button type="submit" fullWidth isLoading={isLoading} style={{ height: '3.5rem', fontSize: '1rem', fontWeight: 700 }}>
+              Sign In to Dashboard
             </Button>
 
             <div className="auth-footer">
               Don&apos;t have an account?{' '}
               <Link href="/signup" className="auth-link">
-                Sign up
+                Create Account
               </Link>
             </div>
           </form>
+
+          <div style={{ marginTop: 'auto', paddingTop: '2rem', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+            &copy; 2025 GearGuard Industrial Systems. All rights reserved.
+          </div>
         </div>
       </div>
     </div>

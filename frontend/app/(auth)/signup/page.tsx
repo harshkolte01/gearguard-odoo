@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import PasswordStrength from '@/components/ui/PasswordStrength';
 import { authApi, ApiError } from '@/lib/api';
+import AuthVisual from '@/components/auth/AuthVisual';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -109,25 +110,21 @@ export default function SignupPage() {
 
   return (
     <div className="auth-container">
-      <div className="auth-visual">
-        <div className="geometric-pattern">
-          {Array.from({ length: 9 }).map((_, i) => (
-            <div key={i} className="geometric-block" />
-          ))}
-        </div>
-      </div>
+      <AuthVisual />
 
       <div className="auth-form-section">
         <div className="auth-form-container">
           <div className="auth-logo">
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.05em' }}>
-              GEARGUARD
-            </h2>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 4L4 10V22L16 28L28 22V10L16 4Z" stroke="var(--accent-rust)" strokeWidth="2.5" strokeLinejoin="round"/>
+              <circle cx="16" cy="16" r="4" fill="var(--accent-rust)"/>
+            </svg>
+            <h2>GEARGUARD</h2>
           </div>
 
-          <h1 className="auth-title">Create Account</h1>
+          <h1 className="auth-title">Join Us</h1>
           <p className="auth-subtitle">
-            Join GearGuard to manage your equipment efficiently
+            Create your account and start managing equipment like a pro
           </p>
 
           {generalError && (
@@ -143,25 +140,27 @@ export default function SignupPage() {
           )}
 
           <form onSubmit={handleSubmit} className="auth-form">
-            <Input
-              label="Full Name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              error={errors.name}
-              disabled={isLoading}
-            />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <Input
+                label="Full Name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                error={errors.name}
+                disabled={isLoading}
+              />
 
-            <Input
-              label="Email Address"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              error={errors.email}
-              disabled={isLoading}
-            />
+              <Input
+                label="Email Address"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                error={errors.email}
+                disabled={isLoading}
+              />
+            </div>
 
-            <div>
+            <div style={{ position: 'relative' }}>
               <Input
                 label="Password"
                 type="password"
@@ -170,19 +169,23 @@ export default function SignupPage() {
                 error={errors.password}
                 disabled={isLoading}
               />
-              <PasswordStrength password={formData.password} />
+              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10 }}>
+                <PasswordStrength password={formData.password} />
+              </div>
             </div>
 
-            <Input
-              label="Confirm Password"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              error={errors.confirmPassword}
-              disabled={isLoading}
-            />
+            <div style={{ marginTop: '2.5rem' }}>
+              <Input
+                label="Confirm Password"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                error={errors.confirmPassword}
+                disabled={isLoading}
+              />
+            </div>
 
-            <div className="checkbox-wrapper" style={{ marginBottom: '1.5rem' }}>
+            <div className="checkbox-wrapper" style={{ marginBottom: '1.5rem', marginTop: '1rem' }}>
               <input
                 type="checkbox"
                 id="acceptTerms"
@@ -203,7 +206,7 @@ export default function SignupPage() {
               </span>
             )}
 
-            <Button type="submit" fullWidth isLoading={isLoading}>
+            <Button type="submit" fullWidth isLoading={isLoading} style={{ height: '3.5rem', fontSize: '1rem', fontWeight: 700 }}>
               Create Account
             </Button>
 
@@ -214,6 +217,10 @@ export default function SignupPage() {
               </Link>
             </div>
           </form>
+
+          <div style={{ marginTop: 'auto', paddingTop: '2rem', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+            &copy; 2025 GearGuard Industrial Systems. All rights reserved.
+          </div>
         </div>
       </div>
     </div>

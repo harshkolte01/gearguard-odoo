@@ -72,9 +72,71 @@ const updatePassword = async (userId, newPassword) => {
   }
 };
 
+/**
+ * Assign equipment to user
+ * @param {string} userId - User ID
+ * @param {string[]} equipmentIds - Array of equipment IDs to assign
+ * @returns {Promise<Object[]>} Updated equipment records
+ */
+const assignEquipmentToUser = async (userId, equipmentIds) => {
+  try {
+    // Update all specified equipment to set employee_owner_id
+    const updatedEquipment = await prisma.equipment.updateMany({
+      where: {
+        id: { in: equipmentIds },
+        status: 'active', // Only assign active equipment
+      },
+      data: {
+        employee_owner_id: userId,
+      },
+    });
+
+    return updatedEquipment;
+  } catch (error) {
+    throw new Error(`Error assigning equipment: ${error.message}`);
+  }
+};
+
+/**
+ * Auto-assign random equipment to new user
+ * @param {string} userId - User ID
+ * @param {number} count - Number of equipment to assign (default: 2)
+ * @returns {Promise<Object[]>} Assigned equipment records
+ */
+const autoAssignEquipment = async (userId, count = 2) => {
+  try {
+    // Find random active equipment that are not already assigned
+    const availableEquipment = await prisma.equipment.findMany({
+      where: {
+        status: 'active',
+        employee_owner_id: null,
+      },
+      take: count,
+      select: {
+        id: true,
+        name: true,
+        serial_number: true,
+      },
+    });
+
+    if (availableEquipment.length === 0) {
+      return [];
+    }
+
+    const equipmentIds = availableEquipment.map(eq => eq.id);
+    await assignEquipmentToUser(userId, equipmentIds);
+
+    return availableEquipment;
+  } catch (error) {
+    throw new Error(`Error auto-assigning equipment: ${error.message}`);
+  }
+};
+
 module.exports = {
   findUserByEmail,
   createUser,
   updatePassword,
+  assignEquipmentToUser,
+  autoAssignEquipment,
 };
 

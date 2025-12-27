@@ -47,6 +47,15 @@ const signup = async (req, res) => {
       role: 'portal',
     });
 
+    // Auto-assign 1-2 random equipment to the new portal user
+    let assignedEquipment = [];
+    try {
+      assignedEquipment = await userService.autoAssignEquipment(user.id, 2);
+    } catch (equipmentError) {
+      console.warn('Equipment assignment warning:', equipmentError.message);
+      // Continue even if equipment assignment fails
+    }
+
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -56,6 +65,11 @@ const signup = async (req, res) => {
         email: user.email,
         role: user.role,
       },
+      assignedEquipment: assignedEquipment.map(eq => ({
+        id: eq.id,
+        name: eq.name,
+        serial_number: eq.serial_number,
+      })),
     });
   } catch (error) {
     console.error('Signup error:', error);
