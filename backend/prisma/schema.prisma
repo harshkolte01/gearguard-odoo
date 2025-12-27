@@ -42,6 +42,7 @@ model TeamMember {
   user    User   @relation("UserTeamMemberships", fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([team_id, user_id])
+  @@index([user_id])
   @@map("team_members")
 }
 
@@ -98,6 +99,10 @@ model Equipment {
   @@index([status])
   @@index([maintenance_team_id])
   @@index([category_id])
+  @@index([work_center_id])
+  @@index([default_technician_id])
+  @@index([employee_owner_id])
+  @@index([health_score])
   @@map("equipment")
 }
 
@@ -127,6 +132,12 @@ model MaintenanceRequest {
   @@index([category])
   @@index([scheduled_date])
   @@index([created_at])
+  @@index([team_id])
+  @@index([assigned_technician_id])
+  @@index([equipment_id])
+  @@index([assigned_technician_id, state])
+  @@index([team_id, state])
+  @@index([equipment_id, type, created_at])
   @@map("maintenance_requests")
 }
 

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const dashboardController = require('../controllers/dashboard.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const { cacheUserData } = require('../middleware/user-cache.middleware');
 const { requireTechnician } = require('../middleware/rbac.middleware');
 
 /**
@@ -14,7 +15,7 @@ const { requireTechnician } = require('../middleware/rbac.middleware');
  * @desc    Get all KPI values for dashboard cards
  * @access  Technician+
  */
-router.get('/kpis', authMiddleware, requireTechnician, dashboardController.getKPIs);
+router.get('/kpis', authMiddleware, cacheUserData, requireTechnician, dashboardController.getKPIs);
 
 /**
  * @route   GET /api/dashboard/critical-equipment
@@ -24,6 +25,7 @@ router.get('/kpis', authMiddleware, requireTechnician, dashboardController.getKP
 router.get(
   '/critical-equipment',
   authMiddleware,
+  cacheUserData,
   requireTechnician,
   dashboardController.getCriticalEquipment
 );
@@ -36,6 +38,7 @@ router.get(
 router.get(
   '/technician-load',
   authMiddleware,
+  cacheUserData,
   requireTechnician,
   dashboardController.getTechnicianLoad
 );
@@ -45,7 +48,7 @@ router.get(
  * @desc    Get recent requests for dashboard table
  * @access  Technician+
  */
-router.get('/requests', authMiddleware, requireTechnician, dashboardController.getRequests);
+router.get('/requests', authMiddleware, cacheUserData, requireTechnician, dashboardController.getRequests);
 
 module.exports = router;
 

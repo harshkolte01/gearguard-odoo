@@ -6,7 +6,7 @@ import { isAuthenticated, userStorage } from '@/lib/auth';
 import { useRequestsByTeam, useRequestsByCategory } from '@/lib/hooks/useReports';
 import type { User, ReportFilters } from '@/lib/types';
 import Navigation from '@/components/dashboard/Navigation';
-import ReportFilters from '@/components/reports/ReportFilters';
+import ReportFiltersComponent from '@/components/reports/ReportFilters';
 import RequestsByTeamChart from '@/components/reports/RequestsByTeamChart';
 import RequestsByCategoryChart from '@/components/reports/RequestsByCategoryChart';
 
@@ -129,7 +129,7 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <ReportFilters
+        <ReportFiltersComponent
           filters={filters}
           onFilterChange={handleFilterChange}
           onReset={handleResetFilters}

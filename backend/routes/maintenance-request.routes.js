@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const maintenanceRequestController = require('../controllers/maintenance-request.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const { cacheUserData } = require('../middleware/user-cache.middleware');
 const { requireAuth, requireAdmin } = require('../middleware/rbac.middleware');
 
 /**
@@ -21,7 +22,7 @@ router.post('/', authMiddleware, requireAuth, maintenanceRequestController.creat
  * @desc    Get maintenance requests with filters and pagination
  * @access  All authenticated users (filtered by role)
  */
-router.get('/', authMiddleware, requireAuth, maintenanceRequestController.getRequests);
+router.get('/', authMiddleware, cacheUserData, requireAuth, maintenanceRequestController.getRequests);
 
 /**
  * @route   GET /api/maintenance-requests/:id

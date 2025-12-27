@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const calendarController = require('../controllers/calendar.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const { cacheUserData } = require('../middleware/user-cache.middleware');
 const { requireTechnician } = require('../middleware/rbac.middleware');
 
 /**
@@ -17,14 +18,14 @@ const { requireTechnician } = require('../middleware/rbac.middleware');
  * @query   technician_id - Optional technician filter (managers/admins only)
  * @access  Technician+
  */
-router.get('/scheduled', authMiddleware, requireTechnician, calendarController.getScheduledRequests);
+router.get('/scheduled', authMiddleware, cacheUserData, requireTechnician, calendarController.getScheduledRequests);
 
 /**
  * @route   GET /api/calendar/technicians
  * @desc    Get list of technicians for filter dropdown
  * @access  Manager+ (returns empty for technicians)
  */
-router.get('/technicians', authMiddleware, requireTechnician, calendarController.getTechnicians);
+router.get('/technicians', authMiddleware, cacheUserData, requireTechnician, calendarController.getTechnicians);
 
 module.exports = router;
 

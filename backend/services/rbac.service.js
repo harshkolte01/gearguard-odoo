@@ -64,15 +64,21 @@ const canAccessRequest = async (userId, requestId) => {
 
 /**
  * Filter query based on user role and team membership
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object (with teamMemberships) or User ID string
  * @param {object} baseWhere - Base Prisma where clause
  * @returns {Promise<object>} Modified where clause with role-based filters
  */
-const filterByUserRole = async (userId, baseWhere = {}) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { teamMemberships: true },
-  });
+const filterByUserRole = async (userOrUserId, baseWhere = {}) => {
+  // If user object provided (optimized path), use it directly
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      include: { teamMemberships: true },
+    });
+  }
 
   // Admins and managers see everything
   if (user.role === 'admin' || user.role === 'manager') {
@@ -83,7 +89,7 @@ const filterByUserRole = async (userId, baseWhere = {}) => {
   if (user.role === 'portal') {
     return {
       ...baseWhere,
-      created_by: userId,
+      created_by: user.id,
       category: 'equipment', // Portal users cannot see work center requests
     };
   }
@@ -111,14 +117,20 @@ const filterByUserRole = async (userId, baseWhere = {}) => {
 
 /**
  * Get user teams for equipment filtering
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object (with teamMemberships) or User ID string
  * @returns {Promise<object>} Team filter for equipment queries
  */
-const getEquipmentFilter = async (userId) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { teamMemberships: true },
-  });
+const getEquipmentFilter = async (userOrUserId) => {
+  // If user object provided (optimized path), use it directly
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      include: { teamMemberships: true },
+    });
+  }
 
   // Admins and managers see all equipment
   if (user.role === 'admin' || user.role === 'manager') {
@@ -130,7 +142,7 @@ const getEquipmentFilter = async (userId) => {
   if (user.role === 'portal') {
     return {
       OR: [
-        { employee_owner_id: userId },
+        { employee_owner_id: user.id },
         { status: 'active' }, // Allow viewing all active equipment for request creation
       ],
     };

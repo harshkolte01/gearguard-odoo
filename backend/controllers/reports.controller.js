@@ -29,7 +29,9 @@ const getRequestsByTeam = async (req, res) => {
       filters.state = state.split(',').map(s => s.trim());
     }
 
-    const data = await reportsService.getRequestsByTeam(req.user.id, filters);
+    // Use cached user object if available, otherwise fallback to user ID
+    const userOrId = req.userWithTeams || req.user.id;
+    const data = await reportsService.getRequestsByTeam(userOrId, filters);
 
     res.json({
       success: true,
@@ -71,7 +73,9 @@ const getRequestsByEquipmentCategory = async (req, res) => {
       filters.state = state.split(',').map(s => s.trim());
     }
 
-    const data = await reportsService.getRequestsByEquipmentCategory(req.user.id, filters);
+    // Use cached user object if available, otherwise fallback to user ID
+    const userOrId = req.userWithTeams || req.user.id;
+    const data = await reportsService.getRequestsByEquipmentCategory(userOrId, filters);
 
     res.json({
       success: true,

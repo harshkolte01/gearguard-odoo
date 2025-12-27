@@ -7,15 +7,21 @@ const prisma = require('../prisma/client');
 
 /**
  * Get maintenance requests grouped by team
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object or User ID string
  * @param {object} filters - Optional filters (startDate, endDate, state)
  * @returns {Promise<array>} Array of team data with request counts
  */
-const getRequestsByTeam = async (userId, filters = {}) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  });
+const getRequestsByTeam = async (userOrUserId, filters = {}) => {
+  // Get user to check role (use cached if provided)
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      select: { role: true, id: true },
+    });
+  }
 
   // Build where clause with filters
   const where = {};
@@ -24,11 +30,17 @@ const getRequestsByTeam = async (userId, filters = {}) => {
   // Admins and managers see all requests
   if (user.role === 'technician') {
     // Technicians should not access this, but if they do, limit to their teams
-    const teamMemberships = await prisma.teamMember.findMany({
-      where: { user_id: userId },
-      select: { team_id: true },
-    });
-    const teamIds = teamMemberships.map((tm) => tm.team_id);
+    // Use cached teamMemberships if available, otherwise fetch
+    let teamIds;
+    if (user.teamMemberships) {
+      teamIds = user.teamMemberships.map((tm) => tm.team_id);
+    } else {
+      const teamMemberships = await prisma.teamMember.findMany({
+        where: { user_id: user.id },
+        select: { team_id: true },
+      });
+      teamIds = teamMemberships.map((tm) => tm.team_id);
+    }
     where.team_id = { in: teamIds };
   }
 
@@ -85,15 +97,21 @@ const getRequestsByTeam = async (userId, filters = {}) => {
 
 /**
  * Get maintenance requests grouped by equipment category
- * @param {string} userId - User ID
+ * @param {string|object} userOrUserId - User object or User ID string
  * @param {object} filters - Optional filters (startDate, endDate, state)
  * @returns {Promise<array>} Array of category data with request counts
  */
-const getRequestsByEquipmentCategory = async (userId, filters = {}) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  });
+const getRequestsByEquipmentCategory = async (userOrUserId, filters = {}) => {
+  // Get user to check role (use cached if provided)
+  let user = userOrUserId;
+  
+  // Otherwise fetch user (backward compatibility)
+  if (typeof userOrUserId === 'string') {
+    user = await prisma.user.findUnique({
+      where: { id: userOrUserId },
+      select: { role: true, id: true },
+    });
+  }
 
   // Build where clause with filters
   const where = {
@@ -104,11 +122,17 @@ const getRequestsByEquipmentCategory = async (userId, filters = {}) => {
   // Apply role-based filtering
   if (user.role === 'technician') {
     // Technicians should not access this, but if they do, limit to their teams
-    const teamMemberships = await prisma.teamMember.findMany({
-      where: { user_id: userId },
-      select: { team_id: true },
-    });
-    const teamIds = teamMemberships.map((tm) => tm.team_id);
+    // Use cached teamMemberships if available, otherwise fetch
+    let teamIds;
+    if (user.teamMemberships) {
+      teamIds = user.teamMemberships.map((tm) => tm.team_id);
+    } else {
+      const teamMemberships = await prisma.teamMember.findMany({
+        where: { user_id: user.id },
+        select: { team_id: true },
+      });
+      teamIds = teamMemberships.map((tm) => tm.team_id);
+    }
     where.team_id = { in: teamIds };
   }
 
@@ -128,47 +152,51 @@ const getRequestsByEquipmentCategory = async (userId, filters = {}) => {
     where.state = { in: filters.state };
   }
 
-  // Fetch all requests with equipment category information
-  const requests = await prisma.maintenanceRequest.findMany({
-    where,
-    select: {
-      id: true,
-      equipment: {
-        select: {
-          category_id: true,
-          category: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-    },
-  });
+  // Build dynamic SQL query for efficient aggregation
+  // This is much more efficient than loading all records into memory
+  let sql = `
+    SELECT 
+      e.category_id,
+      COALESCE(ec.name, 'Uncategorized') as category_name,
+      COUNT(mr.id)::int as request_count
+    FROM maintenance_requests mr
+    INNER JOIN equipment e ON mr.equipment_id = e.id
+    LEFT JOIN equipment_categories ec ON e.category_id = ec.id
+    WHERE mr.category = 'equipment'
+      AND mr.equipment_id IS NOT NULL
+  `;
 
-  // Group by category manually
-  const categoryCountMap = new Map();
+  const params = [];
 
-  requests.forEach((req) => {
-    const categoryId = req.equipment?.category_id || null;
-    const categoryName = req.equipment?.category?.name || 'Uncategorized';
-    
-    if (!categoryCountMap.has(categoryId)) {
-      categoryCountMap.set(categoryId, {
-        category_id: categoryId,
-        category_name: categoryName,
-        request_count: 0,
-      });
-    }
-    
-    const categoryData = categoryCountMap.get(categoryId);
-    categoryData.request_count += 1;
-  });
+  // Add role-based team filter
+  if (user.role === 'technician' && where.team_id?.in) {
+    sql += ` AND mr.team_id = ANY($${params.length + 1})`;
+    params.push(where.team_id.in);
+  }
 
-  // Convert map to array and sort
-  const result = Array.from(categoryCountMap.values())
-    .sort((a, b) => b.request_count - a.request_count); // Sort by count descending
+  // Add date filters
+  if (where.created_at?.gte) {
+    sql += ` AND mr.created_at >= $${params.length + 1}`;
+    params.push(where.created_at.gte);
+  }
+
+  if (where.created_at?.lte) {
+    sql += ` AND mr.created_at <= $${params.length + 1}`;
+    params.push(where.created_at.lte);
+  }
+
+  // Add state filter
+  if (where.state?.in) {
+    sql += ` AND mr.state = ANY($${params.length + 1})`;
+    params.push(where.state.in);
+  }
+
+  sql += `
+    GROUP BY e.category_id, ec.name
+    ORDER BY request_count DESC
+  `;
+
+  const result = await prisma.$queryRawUnsafe(sql, ...params);
 
   return result;
 };

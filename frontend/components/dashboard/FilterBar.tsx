@@ -28,7 +28,7 @@ const categoryOptions = [
 ];
 
 export default function FilterBar({ filters, onFilterChange, onReset, userRole = 'portal' }: FilterBarProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   const handleStateToggle = (stateValue: string) => {
     const currentStates = filters.state || [];
