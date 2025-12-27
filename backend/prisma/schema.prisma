@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,6 +7,129 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                   String               @id @default(uuid()) @db.Uuid
+  name                 String
+  email                String               @unique
+  password_hash        String
+  role                 Role
+  created_at           DateTime             @default(now())
+  defaultTechnicianFor Equipment[]          @relation("DefaultTechnician")
+  ownedEquipment       Equipment[]          @relation("EquipmentOwner")
+  assignedRequests     MaintenanceRequest[] @relation("AssignedTechnician")
+  createdRequests      MaintenanceRequest[] @relation("RequestCreator")
+  teamMemberships      TeamMember[]         @relation("UserTeamMemberships")
+
+  @@map("users")
+}
+
+model Team {
+  id                    String               @id @default(uuid()) @db.Uuid
+  name                  String               @unique
+  equipment             Equipment[]          @relation("MaintenanceTeam")
+  maintenanceRequests   MaintenanceRequest[] @relation("TeamRequests")
+  members               TeamMember[]         @relation("TeamMembers")
+  defaultForWorkCenters WorkCenter[]         @relation("DefaultTeam")
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id      String @id @default(uuid()) @db.Uuid
+  team_id String @db.Uuid
+  user_id String @db.Uuid
+  team    Team   @relation("TeamMembers", fields: [team_id], references: [id], onDelete: Cascade)
+  user    User   @relation("UserTeamMemberships", fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([team_id, user_id])
+  @@map("team_members")
+}
+
+model WorkCenter {
+  id                  String               @id @default(uuid()) @db.Uuid
+  name                String
+  code                String?
+  cost_per_hour       Float?
+  capacity_efficiency Float?
+  oee_target          Float?
+  default_team_id     String?              @db.Uuid
+  equipment           Equipment[]          @relation("WorkCenterEquipment")
+  maintenanceRequests MaintenanceRequest[] @relation("WorkCenterRequests")
+  defaultTeam         Team?                @relation("DefaultTeam", fields: [default_team_id], references: [id], onDelete: SetNull)
+
+  @@map("work_centers")
+}
+
+model EquipmentCategory {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String      @unique
+  description String?
+  created_at  DateTime    @default(now())
+
+  // Relations
+  equipment Equipment[] @relation("CategoryEquipment")
+
+  @@map("equipment_categories")
+}
+
+model Equipment {
+  id                    String               @id @default(uuid()) @db.Uuid
+  name                  String
+  serial_number         String               @unique
+  department            String
+  employee_owner_id     String?              @db.Uuid
+  location              String
+  purchase_date         DateTime
+  warranty_expiry       DateTime
+  status                EquipmentStatus
+  maintenance_team_id   String               @db.Uuid
+  default_technician_id String?              @db.Uuid
+  work_center_id        String?              @db.Uuid
+  category_id           String?              @db.Uuid
+  health_score          Float?
+  defaultTechnician     User?                @relation("DefaultTechnician", fields: [default_technician_id], references: [id], onDelete: SetNull)
+  employeeOwner         User?                @relation("EquipmentOwner", fields: [employee_owner_id], references: [id], onDelete: SetNull)
+  maintenanceTeam       Team                 @relation("MaintenanceTeam", fields: [maintenance_team_id], references: [id], onDelete: Restrict)
+  workCenter            WorkCenter?          @relation("WorkCenterEquipment", fields: [work_center_id], references: [id], onDelete: SetNull)
+  category              EquipmentCategory?   @relation("CategoryEquipment", fields: [category_id], references: [id], onDelete: SetNull)
+  maintenanceRequests   MaintenanceRequest[] @relation("EquipmentRequests")
+
+  @@index([department])
+  @@index([status])
+  @@index([maintenance_team_id])
+  @@index([category_id])
+  @@map("equipment")
+}
+
+model MaintenanceRequest {
+  id                     String          @id @default(uuid()) @db.Uuid
+  subject                String
+  description            String?
+  type                   RequestType
+  state                  RequestState
+  category               RequestCategory @default(equipment)
+  equipment_id           String?         @db.Uuid
+  work_center_id         String?         @db.Uuid
+  team_id                String          @db.Uuid
+  assigned_technician_id String?         @db.Uuid
+  scheduled_date         DateTime?
+  duration_hours         Float?
+  created_by             String          @db.Uuid
+  created_at             DateTime        @default(now())
+  assignedTechnician     User?           @relation("AssignedTechnician", fields: [assigned_technician_id], references: [id], onDelete: SetNull)
+  creator                User            @relation("RequestCreator", fields: [created_by], references: [id], onDelete: Restrict)
+  equipment              Equipment?      @relation("EquipmentRequests", fields: [equipment_id], references: [id], onDelete: Restrict)
+  team                   Team            @relation("TeamRequests", fields: [team_id], references: [id], onDelete: Restrict)
+  workCenter             WorkCenter?     @relation("WorkCenterRequests", fields: [work_center_id], references: [id], onDelete: SetNull)
+
+  @@index([state])
+  @@index([type])
+  @@index([category])
+  @@index([scheduled_date])
+  @@index([created_at])
+  @@map("maintenance_requests")
+}
+
 enum Role {
   admin
   manager
@@ -17,13 +137,24 @@ enum Role {
   portal
 }
 
-model User {
-  id            String   @id @default(uuid()) @db.Uuid
-  name          String
-  email         String   @unique
-  password_hash String
-  role          Role
-  created_at    DateTime @default(now())
+enum EquipmentStatus {
+  active
+  scrapped
+}
 
-  @@map("users")
+enum RequestType {
+  corrective
+  preventive
+}
+
+enum RequestState {
+  new
+  in_progress
+  repaired
+  scrap
+}
+
+enum RequestCategory {
+  equipment
+  work_center
 }

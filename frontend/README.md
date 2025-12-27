@@ -1,16 +1,17 @@
-# GearGuard Frontend - Authentication System
+# GearGuard Frontend 🛠️
 
-Beautiful, production-ready authentication pages for the GearGuard equipment management system.
+Modern, intuitive maintenance management system built with Next.js and React.
 
-## 🎨 Design Preview
+## 🎯 What It Does
 
-**Aesthetic:** Industrial Minimalism with Geometric Precision
+GearGuard is a comprehensive equipment maintenance management system that helps organizations:
 
-- **Split-screen layout** with animated geometric patterns
-- **Floating label inputs** with smooth transitions
-- **Password strength indicator** with visual feedback
-- **Responsive design** from mobile to desktop
-- **Muted earth tones** with rust accent colors
+- **Track Equipment** - Monitor all your equipment and categorize them efficiently
+- **Manage Maintenance Requests** - Create, assign, and track maintenance work orders
+- **Coordinate Teams** - Assign technicians and manage workload across teams
+- **Visualize Progress** - Interactive dashboards with real-time KPIs and charts
+- **Schedule Work** - Calendar view for planning and tracking scheduled maintenance
+- **Generate Reports** - Analyze maintenance data by category, team, and time period
 
 ## 🚀 Quick Start
 
@@ -22,218 +23,136 @@ npm install
 npm run dev
 ```
 
-**Important:** Backend must be running on `http://localhost:3001` with CORS enabled.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-See [`QUICK_START.md`](QUICK_START.md) for complete setup instructions.
+**Note:** Backend server must be running on `http://localhost:3001`
 
-## 📁 Project Structure
+## 🏗️ Tech Stack
 
-```
-frontend/
-├── app/
-│   ├── (auth)/              # Authentication pages (route group)
-│   │   ├── login/
-│   │   │   └── page.tsx    # Login page
-│   │   ├── signup/
-│   │   │   └── page.tsx    # Signup page
-│   │   └── forgot-password/
-│   │       └── page.tsx    # Password reset page
-│   ├── layout.tsx          # Root layout
-│   ├── page.tsx            # Home (redirects to login)
-│   └── globals.css         # Design system
-│
-├── components/
-│   └── ui/                 # Reusable UI components
-│       ├── Input.tsx       # Floating label input
-│       ├── Button.tsx      # Styled button with loading
-│       └── PasswordStrength.tsx  # Password indicator
-│
-├── lib/
-│   ├── api.ts             # API client & error handling
-│   └── types.ts           # TypeScript definitions
-│
-└── .env.local             # Environment configuration
-```
+- **Next.js 16** - React framework with App Router
+- **TypeScript** - Full type safety
+- **Tailwind CSS 4** - Modern utility-first styling
+- **Recharts** - Data visualization
+- **DnD Kit** - Drag-and-drop for Kanban boards
 
-## 📄 Available Pages
+## 📱 Key Features
 
-| Route | Description | Features |
-|-------|-------------|----------|
-| `/login` | User authentication | Email/password, remember me, error handling |
-| `/signup` | New user registration | Name/email/password, strength indicator, validation |
-| `/forgot-password` | Password reset | Email validation, success confirmation |
+### 🔐 Authentication System
+- Role-based access control (Admin, Technician, Portal User)
+- Secure login/signup with JWT tokens
+- Password reset functionality
 
-## 🔧 Technology Stack
+### 📊 Dashboard
+- Real-time KPIs (total requests, in-progress, completed, overdue)
+- Advanced filtering (state, priority, technician, date range)
+- Interactive request table with status badges
+- Role-specific views and permissions
 
-- **Next.js** 16.1.1 (App Router)
-- **React** 19.2.3
-- **TypeScript** Full type safety
-- **Tailwind CSS** 4 + Custom CSS
-- **API Integration** Native fetch wrapper
+### 📋 Request Management
+- Create maintenance requests with equipment selection
+- Drag-and-drop Kanban board for visual workflow
+- State transitions (New → Assigned → In Progress → Done)
+- Assign technicians and teams
+- Priority levels (Low, Medium, High, Critical)
+- Smart maintenance buttons on equipment
 
-## 📖 Documentation
+### 🔧 Equipment Management
+- Equipment categorization
+- Track equipment by work center
+- Equipment status monitoring (Running, Under Maintenance, Down, Scrapped)
+- Scrap equipment with maintenance impact tracking
 
-| Document | Purpose |
-|----------|---------|
-| [`QUICK_START.md`](QUICK_START.md) | Get started in 3 steps |
-| [`AUTH_SETUP_GUIDE.md`](AUTH_SETUP_GUIDE.md) | Complete setup & troubleshooting |
-| [`AUTH_PAGES_DOCUMENTATION.md`](AUTH_PAGES_DOCUMENTATION.md) | Technical documentation |
-| [`INTEGRATION_NOTES.md`](INTEGRATION_NOTES.md) | Backend integration instructions |
-| [`IMPLEMENTATION_SUMMARY.md`](IMPLEMENTATION_SUMMARY.md) | What was built |
+### 👥 Team & Technician Management
+- Manage work centers and teams
+- Assign technicians to teams
+- Track technician workload
+- Team-based request assignment
 
-## ✨ Key Features
+### 📅 Calendar View
+- Monthly calendar with scheduled maintenance
+- Filter by technician or view all schedules
+- Visual representation of workload distribution
 
-### Design
-- ✅ Industrial minimalism aesthetic
-- ✅ Split-screen layout with geometric pattern
-- ✅ Floating label inputs
-- ✅ Smooth animations
-- ✅ Fully responsive (mobile-first)
+### 📈 Reports & Analytics
+- Requests by category (bar chart)
+- Requests by team (pie chart)
+- Date range filtering
+- Export-ready data visualization
 
-### Functionality
-- ✅ Complete form validation (client + server)
-- ✅ Password strength indicator
-- ✅ JWT token management
-- ✅ Comprehensive error handling
-- ✅ Loading states
-- ✅ Success/error messages
-
-### Code Quality
-- ✅ TypeScript type safety
-- ✅ Reusable components
-- ✅ Clean architecture
-- ✅ Accessible UI
-- ✅ Production-ready
-
-## 🔐 Authentication Flow
+## 📁 Page Structure
 
 ```
-User → Login/Signup → Validation → API Call → JWT Token → localStorage → Protected Routes
+/login              - User authentication
+/admin              - Admin panel (technician & team management)
+/equipment          - Equipment list & details
+/equipment/categories - Equipment category management
+/requests           - Kanban board for maintenance requests
+/requests/[id]      - Individual request details
+/calendar           - Scheduled maintenance calendar
+/reports            - Analytics & data visualization
+/teams              - Team management
 ```
 
-## 🧪 Testing
+## 🎨 Design Highlights
 
-**Test User Creation:**
+- **Industrial Minimalism** - Clean, focused interface
+- **Responsive Design** - Works on desktop, tablet, and mobile
+- **Smooth Animations** - Polished micro-interactions
+- **Skeleton Loading** - Beautiful loading states
+- **Color-coded Status** - Visual indicators for request states and priorities
+- **Accessible UI** - WCAG compliant components
+
+## 👤 User Roles
+
+| Role | Capabilities |
+|------|--------------|
+| **Admin** | Full system access, manage users, teams, and all requests |
+| **Technician** | View assigned requests, update status, complete work |
+| **Portal User** | Create requests, view own requests (read-only) |
+
+## 🔧 Environment Setup
+
+Create `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
 ```
-Name: John Doe
-Email: test@example.com
-Password: TestPass123!
-```
 
-**Password Requirements:**
-- Minimum 8 characters
-- At least one uppercase letter
-- At least one lowercase letter
-- At least one special character (@$!%*?&)
-
-## 🌐 API Endpoints
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/auth/login` | POST | User authentication |
-| `/api/auth/signup` | POST | User registration |
-| `/api/auth/forgot-password` | POST | Password reset request |
-
-## 🚨 Important Notes
-
-### Before First Run
-
-1. **Backend CORS:** Must add CORS support to backend
-   - See [`INTEGRATION_NOTES.md`](INTEGRATION_NOTES.md)
-   
-2. **Environment:** Configure `.env.local`
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:3001/api
-   ```
-
-3. **Backend Running:** Ensure backend server is active on port 3001
-
-## 📱 Responsive Design
-
-- **Desktop (968px+):** Split-screen with geometric visual
-- **Tablet (640-968px):** Form only, optimized spacing
-- **Mobile (<640px):** Single column, touch-friendly
-
-## 🎯 Browser Support
-
-- ✅ Chrome/Edge (latest)
-- ✅ Firefox (latest)
-- ✅ Safari (latest)
-
-## 🔄 Development Workflow
+## 📦 Build & Deploy
 
 ```bash
-# Install dependencies
-npm install
-
-# Run development server
+# Development
 npm run dev
 
-# Build for production
+# Production build
 npm run build
-
-# Start production server
 npm start
 
-# Run linter
+# Lint
 npm run lint
 ```
 
-## 📦 What's Included
+## 🎯 For Presentations
 
-### Pages (3)
-- Login page
-- Signup page
-- Forgot password page
+**Key Talking Points:**
 
-### Components (3)
-- Input with floating labels
-- Button with loading states
-- Password strength indicator
+1. **Complete Solution** - End-to-end maintenance management from request creation to completion
+2. **Role-Based Access** - Different views and permissions for admins, technicians, and users
+3. **Visual Workflow** - Drag-and-drop Kanban makes task management intuitive
+4. **Real-Time Insights** - Dashboard KPIs and reports provide instant visibility
+5. **Modern UX** - Clean design with smooth interactions and responsive layout
 
-### Utilities (2)
-- API client with error handling
-- TypeScript type definitions
+## 📖 Documentation
 
-### Documentation (5)
-- Quick start guide
-- Setup guide
-- Technical documentation
-- Integration notes
-- Implementation summary
+- [`QUICK_START.md`](QUICK_START.md) - Get started guide
+- [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) - UI components & styling
+- [`ROLE_BASED_ACCESS.md`](ROLE_BASED_ACCESS.md) - Permission system
+- [`TESTING_GUIDE.md`](TESTING_GUIDE.md) - How to test features
 
-## 🏆 Production Ready
+## ✨ Status
 
-This authentication system is production-ready with:
-
-- ✅ Beautiful, distinctive design
-- ✅ Robust error handling
-- ✅ Full type safety
-- ✅ Comprehensive validation
-- ✅ Responsive design
-- ✅ Accessible UI
-- ✅ Complete documentation
-- ✅ Tested functionality
-
-## 🆘 Need Help?
-
-1. **Getting Started:** [`QUICK_START.md`](QUICK_START.md)
-2. **Setup Issues:** [`AUTH_SETUP_GUIDE.md`](AUTH_SETUP_GUIDE.md) → Troubleshooting section
-3. **Backend Integration:** [`INTEGRATION_NOTES.md`](INTEGRATION_NOTES.md)
-4. **Technical Details:** [`AUTH_PAGES_DOCUMENTATION.md`](AUTH_PAGES_DOCUMENTATION.md)
-
-## 🎉 Ready to Use!
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Then open `http://localhost:3000` and start authenticating! 🚀
+✅ **Production Ready** - Fully functional maintenance management system
 
 ---
 
-**Built with:** Next.js • React • TypeScript • Tailwind CSS  
-**Design System:** Industrial Minimalism  
-**Status:** ✅ Production Ready
+**Built by the GearGuard Team** | Next.js • TypeScript • Tailwind CSS

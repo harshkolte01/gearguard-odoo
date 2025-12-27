@@ -1,6 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth.routes');
+const adminRoutes = require('./routes/admin.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
+const maintenanceRequestRoutes = require('./routes/maintenance-request.routes');
+const equipmentRoutes = require('./routes/equipment.routes');
+const equipmentCategoryRoutes = require('./routes/equipment-category.routes');
+const workCenterRoutes = require('./routes/work-center.routes');
+const calendarRoutes = require('./routes/calendar.routes');
+const teamRoutes = require('./routes/team.routes');
+const reportsRoutes = require('./routes/reports.routes');
 
 const app = express();
 
@@ -20,6 +29,15 @@ app.get('/', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/maintenance-requests', maintenanceRequestRoutes);
+app.use('/api/equipment', equipmentRoutes);
+app.use('/api/equipment-categories', equipmentCategoryRoutes);
+app.use('/api/work-centers', workCenterRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/reports', reportsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
