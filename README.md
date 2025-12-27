@@ -2,6 +2,19 @@
 
 **A modern, full-stack solution for industrial equipment maintenance tracking**
 
+🌐 **Live Demo:** [https://gearguard-odoo-5g1n.vercel.app](https://gearguard-odoo-5g1n.vercel.app)
+
+---
+
+## 👥 Team Members
+
+| Name | Role | Email |
+|------|------|-------|
+| **Harsh Kolte** | Team Leader | harshkolte01@gmail.com |
+| **Bhoomi Jain** | Developer | - |
+| **Ashish Prajapati** | Developer | - |
+| **Biraj Shah** | Developer | - |
+
 ---
 
 ## 🎯 What It Does
