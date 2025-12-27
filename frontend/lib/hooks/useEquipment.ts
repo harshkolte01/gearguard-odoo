@@ -31,11 +31,8 @@ export function useEquipment(params: UseEquipmentParams = {}) {
           limit: 100, // Get more for dropdown
         });
         
-        // Handle new API response structure with data wrapper
-        if (response.data && response.data.equipment) {
-          setEquipment(response.data.equipment);
-        } else if (response.equipment) {
-          // Fallback for old structure
+        // fetchWithAuth already unwraps the API response, so response is EquipmentListResponse
+        if (response.equipment) {
           setEquipment(response.equipment);
         } else {
           setEquipment([]);
