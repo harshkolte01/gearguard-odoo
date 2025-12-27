@@ -130,8 +130,8 @@ npm run dev          # Runs on http://localhost:3000
 Open [http://localhost:3000](http://localhost:3000)
 
 **Default Login:**
-- Admin: `admin@gearguard.com` / `admin123`
-- Technician: `john.tech@gearguard.com` / `tech123`
+- Admin: `admin@gearguard.com` / `Password@123`
+- Technician: `john.tech@gearguard.com` / `Password@123`
 
 ---
 
