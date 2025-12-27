@@ -51,7 +51,13 @@ const getAllTechnicians = async () => {
       assignedRequestsCount: tech._count.assignedRequests,
     }));
 
-    return formattedTechnicians;
+    // Get stats
+    const stats = await getAdminStats();
+
+    return {
+      technicians: formattedTechnicians,
+      stats,
+    };
   } catch (error) {
     throw new Error(`Error fetching technicians: ${error.message}`);
   }

@@ -12,11 +12,11 @@ const adminService = require('../services/admin.service');
  */
 const getAllTechnicians = async (req, res) => {
   try {
-    const technicians = await adminService.getAllTechnicians();
+    const result = await adminService.getAllTechnicians();
     
     res.status(200).json({
       success: true,
-      data: technicians,
+      data: result,
     });
   } catch (error) {
     console.error('Get all technicians error:', error);
