@@ -14,6 +14,7 @@ enum Role {
   admin
   manager
   technician
+  portal
 }
 
 model User {
